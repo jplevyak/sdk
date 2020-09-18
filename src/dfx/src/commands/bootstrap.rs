@@ -84,6 +84,7 @@ pub fn exec(env: &dyn Environment, args: &ArgMatches<'_>) -> DfxResult {
 
     let _addr = actors::webserver::Webserver::new(webserver_actor_config)?.start();
 
+    // Tell the user.
     info!(logger, "Webserver started...");
 
     actors::signal_watcher::SignalWatchdog::new().start();
