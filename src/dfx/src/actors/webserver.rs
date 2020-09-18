@@ -1,10 +1,10 @@
 use crate::lib::error::{DfxError, DfxResult};
 use crate::lib::network::network_descriptor::NetworkDescriptor;
 use crate::lib::webserver::webserver;
-use actix::{Actor, Context, Running};
+use actix::fut::wrap_future;
+use actix::{Actor, AsyncContext, Context, Running};
 use actix_server::Server;
 use crossbeam::channel::unbounded;
-use futures::executor::block_on;
 use slog::info;
 use slog::Logger;
 use std::net::SocketAddr;
@@ -97,11 +97,11 @@ impl Actor for Webserver {
             .expect("Could not start the webserver");
     }
 
-    fn stopping(&mut self, _ctx: &mut Self::Context) -> Running {
+    fn stopping(&mut self, ctx: &mut Self::Context) -> Running {
         info!(self.logger, "Stopping the webserver...");
 
         if let Some(server) = self.server.take() {
-            block_on(server.stop(true));
+            ctx.wait(wrap_future(server.stop(true)));
         }
 
         if let Some(join) = self.thread_join.take() {
