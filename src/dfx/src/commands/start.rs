@@ -11,7 +11,7 @@ use crate::actors::replica_webserver_coordinator::ReplicaWebserverCoordinator;
 use actix::{Actor, Addr};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use delay::{Delay, Waiter};
-use ic_agent::{Agent, AgentConfig};
+use ic_agent::Agent;
 use std::fs;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
@@ -48,10 +48,7 @@ pub fn construct() -> App<'static, 'static> {
 fn ping_and_wait(frontend_url: &str) -> DfxResult {
     let mut runtime = Runtime::new().expect("Unable to create a runtime");
 
-    let agent = Agent::new(AgentConfig {
-        url: frontend_url.to_string(),
-        ..AgentConfig::default()
-    })?;
+    let agent = Agent::builder().with_url(frontend_url).build()?;
 
     // wait for frontend to come up
     let mut waiter = Delay::builder()
