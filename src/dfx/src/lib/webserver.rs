@@ -10,8 +10,10 @@ mod http_transport;
 use actix::System;
 use actix_cors::Cors;
 use actix_server::Server;
+use actix_utils::mpsc;
+use actix_utils::mpsc::Receiver;
 use actix_web::client::{Client, ClientBuilder, Connector};
-use actix_web::error::ErrorInternalServerError;
+use actix_web::error::{ErrorInternalServerError, ErrorBadRequest};
 use actix_web::http::{StatusCode, Uri};
 use actix_web::{
     http, middleware, web, App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer,
@@ -320,13 +322,29 @@ async fn http_request(
                 for HeaderField(name, value) in http_response.headers {
                     builder.header(&name, value);
                 }
+                // let text1 = format!("Hello (1)!");
+                // let text2 = format!("Hello (2)!");
+                //
+                // let (tx, rx_body) = mpsc::channel();
+                // let _ = tx.send(Ok::<_, Error>(web::Bytes::from(text1)));
+                // let _ = tx.send(Ok::<_, Error>(web::Bytes::from(text2)));
+                // let response = builder.streaming(rx_body);
+                // Ok(response)
 
-                match get_whole_body(&canister, http_response.body, http_response.next_token).await
-                {
-                    Err(err) => Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(format!("Details: {:?}", err))),
-                    Ok(body) => Ok(builder.body(body)),
-                }
+                let response = match http_response.next_token {
+                    None => builder.body(http_response.body),
+                    Some(next_token) => {
+                        builder.streaming(stream_body(canister, http_response.body, next_token).await)
+                    }
+                };
+                Ok(response)
+
+            // match get_whole_body(&canister, http_response.body, http_response.next_token).await
+            // {
+            //     Err(err) => Ok(HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR)
+            //         .body(format!("Details: {:?}", err))),
+            //     Ok(body) => Ok(builder.body(body)),
+            // }
             } else {
                 Ok(
                     HttpResponse::build(StatusCode::INTERNAL_SERVER_ERROR).body(format!(
@@ -337,6 +355,32 @@ async fn http_request(
             }
         }
     }
+}
+
+async fn stream_body(
+    canister: Canister<'_, HttpRequestCanister>,
+    body: Vec<u8>,
+    next_token: IDLValue,
+) -> Receiver<Result<web::Bytes, Error>> {
+
+    let (tx, rx_body) = mpsc::channel();
+    let _ = tx.send(Ok::<_, Error>(web::Bytes::from(body)));
+
+    let mut maybe_next_token = Some(next_token );
+    'outer: while let Some(next_token) = maybe_next_token {
+        match canister.http_request_next(next_token).call().await {
+            Err(agent_error) => {
+                let _ = tx.send(Err(ErrorBadRequest(agent_error)));
+                break 'outer;
+            },
+            Ok((response,)) => {
+                let _ = tx.send(Ok::<_, Error>(web::Bytes::from(response.body)));
+                maybe_next_token = response.next_token;
+            }
+        }
+    }
+
+    rx_body
 }
 
 async fn get_whole_body(

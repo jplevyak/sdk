@@ -1113,6 +1113,7 @@ dependencies = [
  "actix-cors",
  "actix-files",
  "actix-server",
+ "actix-utils",
  "actix-web",
  "anyhow",
  "atty",
