@@ -22,6 +22,7 @@ use anyhow::anyhow;
 use candid::parser::value::IDLValue;
 use crossbeam::channel::Sender;
 use futures::{StreamExt, Stream};
+use futures_util::stream::{try_unfold, TryUnfold};
 use ic_agent::{Agent, AgentError};
 use ic_types::Principal;
 use ic_utils::call::SyncCall;
@@ -334,7 +335,7 @@ async fn http_request(
                 let response = match http_response.next_token {
                     None => builder.body(http_response.body),
                     Some(next_token) => builder.streaming(
-                        create_body_stream(canister, http_response.body, next_token).await,
+                        create_body_stream_with_unfold(canister, http_response.body, next_token).await,
                     ),
                 };
                 Ok(response)
@@ -355,6 +356,38 @@ async fn http_request(
             }
         }
     }
+}
+// 1. (0, n1)
+// 2. (1, n2)
+// 3. (2, null)
+//
+// 1. (0, null)
+async fn create_body_stream_with_unfold(
+    canister: Canister<'_, HttpRequestCanister>,
+    body: Vec<u8>,
+    next_token: IDLValue,
+) -> impl Stream<Item = Result<web::Bytes, Error>> + '_ + Unpin {
+    try_unfold((Some(body), Some(next_token)), |(maybe_chunk, maybe_next_token)| async move {
+        match (maybe_chunk, maybe_next_token) {
+            (None, _) => Ok(None),
+
+            (Some(chunk), Some(next_token)) => {
+
+                // match canister.http_request_next(next_token).call().await {
+                //     Err(agent_error) => {
+                //         Err(ErrorBadRequest(agent_error))
+                //     },
+                //     Ok((response,)) => {
+                //         let next_state = (Some(response.body), response.next_token);
+                //
+                //         Ok(Some((web::Bytes::from(chunk), next_state)))
+                //     }
+                // }
+                Ok(Some((web::Bytes::from(chunk), (None, None))))
+            }
+            (Some(chunk), None) => Ok(Some((web::Bytes::from(chunk), (None, None)))),
+        }
+    })
 }
 
 async fn create_body_stream(
