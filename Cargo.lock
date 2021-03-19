@@ -1954,7 +1954,7 @@ dependencies = [
 [[package]]
 name = "ic-types"
 version = "0.1.2"
-source = "git+https://github.com/dfinity/agent-rs.git?branch=ericswanson/126-http-server-chunked-assets#60ba952fa6814580ed3d6f50a59364c199a1330c"
+source = "git+https://github.com/dfinity/agent-rs.git?branch=ericswanson/126-http-server-chunked-assets#a3f7fe5fbefb857f2c61ec1924271f94e0dbc501"
 dependencies = [
  "base32",
  "crc32fast",

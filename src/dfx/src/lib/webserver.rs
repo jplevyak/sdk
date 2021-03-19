@@ -13,7 +13,7 @@ use actix_server::Server;
 use actix_utils::mpsc;
 use actix_utils::mpsc::Receiver;
 use actix_web::client::{Client, ClientBuilder, Connector};
-use actix_web::error::{ErrorInternalServerError, ErrorBadRequest};
+use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
 use actix_web::http::{StatusCode, Uri};
 use actix_web::{
     http, middleware, web, App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer,
@@ -21,7 +21,7 @@ use actix_web::{
 use anyhow::anyhow;
 use candid::parser::value::IDLValue;
 use crossbeam::channel::Sender;
-use futures::StreamExt;
+use futures::{StreamExt, Stream};
 use ic_agent::{Agent, AgentError};
 use ic_types::Principal;
 use ic_utils::call::SyncCall;
@@ -333,9 +333,9 @@ async fn http_request(
 
                 let response = match http_response.next_token {
                     None => builder.body(http_response.body),
-                    Some(next_token) => {
-                        builder.streaming(stream_body(canister, http_response.body, next_token).await)
-                    }
+                    Some(next_token) => builder.streaming(
+                        create_body_stream(canister, http_response.body, next_token).await,
+                    ),
                 };
                 Ok(response)
 
@@ -357,33 +357,42 @@ async fn http_request(
     }
 }
 
-async fn stream_body(
+async fn create_body_stream(
     canister: Canister<'_, HttpRequestCanister>,
     body: Vec<u8>,
     next_token: IDLValue,
 ) -> Receiver<Result<web::Bytes, Error>> {
-
     let (tx, rx_body) = mpsc::channel();
+
+    stream_body(tx, canister, body, next_token).await;
+
+    rx_body
+}
+
+async fn stream_body(
+    tx: actix_utils::mpsc::Sender<Result<web::Bytes, Error>>,
+    canister: Canister<'_, HttpRequestCanister>,
+    body: Vec<u8>,
+    next_token: IDLValue,
+) {
     let _ = tx.send(Ok::<_, Error>(web::Bytes::from(body)));
 
-    let mut maybe_next_token = Some(next_token );
+    let mut maybe_next_token = Some(next_token);
     'outer: while let Some(next_token) = maybe_next_token {
         match canister.http_request_next(next_token).call().await {
             Err(agent_error) => {
                 let _ = tx.send(Err(ErrorBadRequest(agent_error)));
                 break 'outer;
-            },
+            }
             Ok((response,)) => {
                 let _ = tx.send(Ok::<_, Error>(web::Bytes::from(response.body)));
                 maybe_next_token = response.next_token;
             }
         }
     }
-
-    rx_body
 }
 
-async fn get_whole_body(
+async fn _get_whole_body(
     canister: &Canister<'_, HttpRequestCanister>,
     body: Vec<u8>,
     next_token: Option<IDLValue>,
