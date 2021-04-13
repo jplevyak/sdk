@@ -1,4 +1,6 @@
+use crate::lib::nns_types::icpts::ICPTs;
 use humanize_rs::bytes::{Bytes, Unit};
+use std::str::FromStr;
 
 pub fn is_request_id(v: &str) -> Result<(), String> {
     // A valid Request Id starts with `0x` and is a series of 64 hexadecimals.
@@ -15,6 +17,17 @@ pub fn is_request_id(v: &str) -> Result<(), String> {
     } else {
         Ok(())
     }
+}
+
+pub fn icpts_amount_validator(icpts: &str) -> Result<(), String> {
+    ICPTs::from_str(icpts).map(|_| ())
+}
+
+pub fn memo_validator(memo: &str) -> Result<(), String> {
+    if memo.parse::<u64>().is_ok() {
+        return Ok(());
+    }
+    Err("Must be a non negative amount.".to_string())
 }
 
 pub fn cycle_amount_validator(cycles: &str) -> Result<(), String> {
@@ -41,6 +54,15 @@ pub fn memory_allocation_validator(memory_allocation: &str) -> Result<(), String
         }
     }
     Err("Must be a value between 0..256 TB inclusive.".to_string())
+}
+
+pub fn freezing_threshold_validator(freezing_threshold: &str) -> Result<(), String> {
+    if let Ok(num) = freezing_threshold.parse::<u128>() {
+        if num <= (2_u128.pow(64) - 1) {
+            return Ok(());
+        }
+    }
+    Err("Must be a value between 0 and 2^64-1 inclusive".to_string())
 }
 
 /// Validate a String can be a valid project name.
