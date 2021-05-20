@@ -86,7 +86,7 @@ pub async fn install_canister(
         }
     }
 
-    if canister_info.get_type() == "assets" {
+    if canister_info.get_type() != "motoko" {
         match call_sender {
             CallSender::Wallet(wallet_id) | CallSender::SelectedIdWallet(wallet_id) => {
                 let wallet = Identity::build_wallet_canister(wallet_id.clone(), env)?;

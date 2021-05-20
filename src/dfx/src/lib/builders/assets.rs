@@ -59,8 +59,9 @@ impl AssetsBuilder {
 }
 
 impl CanisterBuilder for AssetsBuilder {
-    fn supports(&self, info: &CanisterInfo) -> bool {
-        info.get_type() == "assets"
+    fn supports(&self, _info: &CanisterInfo) -> bool {
+        // info.get_type() == "assets" || info.get_type() == "custom"
+        true
     }
 
     fn get_dependencies(

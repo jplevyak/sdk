@@ -45,8 +45,9 @@ impl AssetsCanisterInfo {
 }
 
 impl CanisterInfoFactory for AssetsCanisterInfo {
-    fn supports(info: &CanisterInfo) -> bool {
-        info.get_type() == "assets"
+    fn supports(_info: &CanisterInfo) -> bool {
+        // info.get_type() == "assets" || info.get_type() == "custom"
+        true
     }
 
     fn create(info: &CanisterInfo) -> DfxResult<AssetsCanisterInfo> {
