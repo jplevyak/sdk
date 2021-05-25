@@ -93,10 +93,11 @@ impl CanisterBuilder for AssetsBuilder {
 
         let wasm_path = info.get_output_root().join(Path::new("assetstorage.wasm"));
         let idl_path = info.get_output_root().join(Path::new("assetstorage.did"));
+        let candid = info.get_output_idl_path().unwrap_or(idl_path.clone());
         Ok(BuildOutput {
             canister_id: info.get_canister_id().expect("Could not find canister ID."),
             wasm: WasmBuildOutput::File(wasm_path),
-            idl: IdlBuildOutput::File(idl_path),
+            idl: IdlBuildOutput::File(candid),
         })
     }
 
