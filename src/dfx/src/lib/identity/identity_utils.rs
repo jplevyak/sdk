@@ -26,8 +26,8 @@ pub async fn call_sender(
                 .expect("No network descriptor.");
             let identity_name = env.get_selected_identity().expect("No selected identity.");
             let wallet =
-                Identity::get_or_create_wallet_canister(env, network, &identity_name, true).await?;
-            CallSender::SelectedIdWallet(wallet.canister_id_().clone())
+                Identity::get_or_create_wallet_canister(env, network, identity_name, true).await?;
+            CallSender::SelectedIdWallet(*wallet.canister_id_())
         } else {
             CallSender::SelectedId
         }

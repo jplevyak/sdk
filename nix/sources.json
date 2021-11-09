@@ -1,21 +1,21 @@
 {
     "advisory-db": {
-        "branch": "master",
+        "branch": "main",
         "builtin": false,
         "description": "Security advisory database for Rust crates published through crates.io",
         "homepage": "https://rustsec.org",
         "owner": "RustSec",
         "repo": "advisory-db",
-        "rev": "bd8a0f67004bbe3c65153820076d56d3ca5fb7f0",
-        "sha256": "1cny831c18gpa9kbf82rz689ww0yih4lais5g45p56jx75fcfqmk",
+        "rev": "f494f83f8edffecba0d2535be051c1a6d8dfaa39",
+        "sha256": "0v0aqkivfpmh1abm7v5b2ig384jdgahcalshxm5a9bznsz5m7696",
         "type": "tarball",
-        "url": "https://github.com/RustSec/advisory-db/archive/bd8a0f67004bbe3c65153820076d56d3ca5fb7f0.tar.gz",
+        "url": "https://github.com/RustSec/advisory-db/archive/f494f83f8edffecba0d2535be051c1a6d8dfaa39.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "agent-rs": {
-        "branch": "dfx-support/build-on-rust-1.45.2-for-sdk-under-nix",
+        "branch": "main",
         "repo": "https://github.com/dfinity/agent-rs",
-        "rev": "e6bf42ed697db37a252f019563c36160f72d8cd8",
+        "rev": "c712fdfe4edc7f34a0140dba129025f6d58ffd06",
         "type": "git"
     },
     "bats-support": {
@@ -34,26 +34,76 @@
     "common": {
         "branch": "master",
         "repo": "ssh://git@github.com/dfinity-lab/common",
-        "rev": "9960cc13ad2e8bcf1af5ea820fc50a2456ccc1db",
+        "rev": "1e601cfb5bb10daa13af645230be72a882140940",
         "type": "git"
     },
-    "dfinity": {
-        "branch": "release-mercury-genesis",
-        "repo": "ssh://git@github.com/dfinity-lab/dfinity",
-        "rev": "2744e8abf9f5efded909332a7c07c2ec074a0b73",
+    "ic-ref-x86_64-darwin": {
+        "builtin": false,
+        "rev": "a432156f24faa16d387c9d36815f7ddc5d50e09f",
+        "sha256": "1px3aygpmf50alkfb557la41aldzakpg4mgh7yvaqdy2mp6fgy0m",
+        "type": "file",
+        "url": "https://download.dfinity.systems/ic-ref/ic-ref-0.0.1-a432156f-x86_64-darwin.tar.gz",
+        "url_template": "https://download.dfinity.systems/ic-ref/ic-ref-<version>-x86_64-darwin.tar.gz",
+        "version": "0.0.1-a432156f"
+    },
+    "ic-ref-x86_64-linux": {
+        "builtin": false,
+        "rev": "a432156f24faa16d387c9d36815f7ddc5d50e09f",
+        "sha256": "0jwz0b7vcj6lprzj7l0wx57r97rxqkszanbq9wbzjkrckigifhlk",
+        "type": "file",
+        "url": "https://download.dfinity.systems/ic-ref/ic-ref-0.0.1-a432156f-x86_64-linux.tar.gz",
+        "url_template": "https://download.dfinity.systems/ic-ref/ic-ref-<version>-x86_64-linux.tar.gz",
+        "version": "0.0.1-a432156f"
+    },
+    "ic-starter-x86_64-darwin": {
+        "builtin": false,
+        "rev": "5ba08e57d607fc8fb159013fe30e46302cb4667d",
+        "sha256": "1jshdygx7pr0v7s4v2bm277y8jqyrpd9gdhwqmx1762nk7rqq8q0",
+        "type": "file",
+        "url": "https://download.dfinity.systems/ic/5ba08e57d607fc8fb159013fe30e46302cb4667d/nix-release/x86_64-darwin/ic-starter.gz",
+        "url_template": "https://download.dfinity.systems/ic/<rev>/nix-release/x86_64-darwin/ic-starter.gz"
+    },
+    "ic-starter-x86_64-linux": {
+        "builtin": false,
+        "rev": "5ba08e57d607fc8fb159013fe30e46302cb4667d",
+        "sha256": "1cnib147bwmxi1hp8kwl002d0hp3pxdrmjy1s47fr3i3la18mw55",
+        "type": "file",
+        "url": "https://download.dfinity.systems/ic/5ba08e57d607fc8fb159013fe30e46302cb4667d/nix-release/ic-starter.gz",
+        "url_template": "https://download.dfinity.systems/ic/<rev>/nix-release/ic-starter.gz"
+    },
+    "icx-proxy": {
+        "branch": "main",
+        "repo": "https://github.com/dfinity/icx-proxy",
+        "rev": "d2cd4d822be4fa8d0af2f27e4dcc635d2032fcfb",
         "type": "git"
     },
-    "ic-ref": {
-        "branch": "release-0.17",
-        "repo": "ssh://git@github.com/dfinity-lab/ic-ref",
-        "rev": "0da8f01f0a4d6fce0a4f2c14ff767789311dbfa2",
-        "type": "git"
+    "motoko-base": {
+        "branch": "next-moc",
+        "description": "The Motoko base library",
+        "homepage": null,
+        "owner": "dfinity",
+        "repo": "motoko-base",
+        "rev": "45bd1abc8e81376d5e1c1dd6322e170e47555c57",
+        "sha256": "18i51cglq8131lyn6w2rjbhx32fbl7y62gga4cs10fdw2fmiw0d8",
+        "type": "tarball",
+        "url": "https://github.com/dfinity/motoko-base/archive/45bd1abc8e81376d5e1c1dd6322e170e47555c57.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "motoko": {
-        "repo": "ssh://git@github.com/dfinity/motoko",
-        "rev": "9b07f5c1a41fe2cb2205255ed0819ca54278ba2a",
-        "tag": "0.6.1",
-        "type": "git"
+    "motoko-x86_64-darwin": {
+        "builtin": false,
+        "sha256": "0k7xy6p9sj6liz3n84h51q9radsc85xh4saqybilmwfpfqq3v30y",
+        "type": "file",
+        "url": "https://github.com/dfinity/motoko/releases/download/0.6.11/motoko-macos-0.6.11.tar.gz",
+        "url_template": "https://github.com/dfinity/motoko/releases/download/<version>/motoko-macos-<version>.tar.gz",
+        "version": "0.6.11"
+    },
+    "motoko-x86_64-linux": {
+        "builtin": false,
+        "sha256": "003qkpaj7cycf2cagi6mna240v58kyvhs5067ia9r63gfx5hgj7k",
+        "type": "file",
+        "url": "https://github.com/dfinity/motoko/releases/download/0.6.11/motoko-linux64-0.6.11.tar.gz",
+        "url_template": "https://github.com/dfinity/motoko/releases/download/<version>/motoko-linux64-<version>.tar.gz",
+        "version": "0.6.11"
     },
     "napalm": {
         "branch": "master",
@@ -67,5 +117,21 @@
         "type": "tarball",
         "url": "https://github.com/nmattia/napalm/archive/4db4f253c78cfa8d8e8defb45dfe25e04409142a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "replica-x86_64-darwin": {
+        "builtin": false,
+        "rev": "5ba08e57d607fc8fb159013fe30e46302cb4667d",
+        "sha256": "1m3z228k2kzx9l7g0f8k52pk6hnr5l01jabvanchl2mbip3d27d6",
+        "type": "file",
+        "url": "https://download.dfinity.systems/ic/5ba08e57d607fc8fb159013fe30e46302cb4667d/nix-release/x86_64-darwin/replica.gz",
+        "url_template": "https://download.dfinity.systems/ic/<rev>/nix-release/x86_64-darwin/replica.gz"
+    },
+    "replica-x86_64-linux": {
+        "builtin": false,
+        "rev": "5ba08e57d607fc8fb159013fe30e46302cb4667d",
+        "sha256": "1faaxsklhqbc3pjw1fvnhzqlap3zzgjw4g07phzpz9drm8d0zah2",
+        "type": "file",
+        "url": "https://download.dfinity.systems/ic/5ba08e57d607fc8fb159013fe30e46302cb4667d/nix-release/replica.gz",
+        "url_template": "https://download.dfinity.systems/ic/<rev>/nix-release/replica.gz"
     }
 }

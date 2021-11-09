@@ -44,7 +44,7 @@ async fn deposit_cycles(
 
     info!(log, "Depositing {} cycles onto {}", cycles, canister,);
 
-    canister::deposit_cycles(env, canister_id.clone(), timeout, call_sender, cycles).await?;
+    canister::deposit_cycles(env, canister_id, timeout, call_sender, cycles).await?;
 
     let status = canister::get_canister_status(env, canister_id, timeout, call_sender).await?;
 
@@ -74,11 +74,11 @@ pub async fn exec(
     let timeout = expiry_duration();
 
     if let Some(canister) = opts.canister.as_deref() {
-        deposit_cycles(env, &canister, timeout, call_sender, cycles).await
+        deposit_cycles(env, canister, timeout, call_sender, cycles).await
     } else if opts.all {
         if let Some(canisters) = &config.get_config().canisters {
             for canister in canisters.keys() {
-                deposit_cycles(env, &canister, timeout, call_sender, cycles).await?;
+                deposit_cycles(env, canister, timeout, call_sender, cycles).await?;
             }
         }
         Ok(())

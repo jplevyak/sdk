@@ -3,14 +3,15 @@
 load ../utils/_
 
 setup() {
-    # We want to work from a temporary directory, different for every test.
-    cd "$(mktemp -d -t dfx-e2e-XXXXXXXX)" || exit
+    standard_setup
 
     dfx_new
 }
 
 teardown() {
     dfx_stop
+
+    standard_teardown
 }
 
 @test "direct dependencies are built" {
@@ -69,7 +70,7 @@ teardown() {
     assert_eq '(blob "\b8\01 \80\0aw12 \00xy\0aKL\0b\0ajk")'
 
     assert_command dfx canister call --query e2e_project_assets retrieve '("/text-with-newlines.txt")' --output idl
-    assert_eq '(blob "cherries\0ait'\''s cherry season\0aCHERRIES")'
+    assert_eq '(blob "cherries\0ait\27s cherry season\0aCHERRIES")'
 }
 
 @test "cyclic dependencies are detected" {

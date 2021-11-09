@@ -15,7 +15,7 @@ use crate::lib::identity::Identity;
 use crate::lib::waiter::waiter_with_timeout;
 
 use anyhow::anyhow;
-use candid::de::ArgumentDecoder;
+use candid::utils::ArgumentDecoder;
 use candid::CandidType;
 use ic_types::principal::Principal as CanisterId;
 use ic_types::Principal;
@@ -54,7 +54,7 @@ where
                 .await?
         }
         CallSender::Wallet(wallet_id) | CallSender::SelectedIdWallet(wallet_id) => {
-            let wallet = Identity::build_wallet_canister(wallet_id.clone(), env)?;
+            let wallet = Identity::build_wallet_canister(*wallet_id, env)?;
             let out: O = wallet
                 .call_forward(mgr.update_(method).with_arg(arg).build(), cycles)?
                 .call_and_wait(waiter_with_timeout(timeout))
@@ -79,7 +79,7 @@ pub async fn get_canister_status(
 
     let (out,): (StatusCallResult,) = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::CanisterStatus.as_ref(),
         In { canister_id },
         timeout,
@@ -103,7 +103,7 @@ pub async fn start_canister(
 
     let _: () = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::StartCanister.as_ref(),
         In { canister_id },
         timeout,
@@ -127,7 +127,7 @@ pub async fn stop_canister(
 
     let _: () = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::StopCanister.as_ref(),
         In { canister_id },
         timeout,
@@ -152,12 +152,12 @@ pub async fn update_settings(
     }
     let _: () = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::UpdateSettings.as_ref(),
         In {
             canister_id,
             settings: CanisterSettings {
-                controller: settings.controller,
+                controllers: settings.controllers,
                 compute_allocation: settings
                     .compute_allocation
                     .map(u8::from)
@@ -192,7 +192,7 @@ pub async fn uninstall_code(
     }
     let _: () = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::UninstallCode.as_ref(),
         In { canister_id },
         timeout,
@@ -216,7 +216,7 @@ pub async fn delete_canister(
     }
     let _: () = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::DeleteCanister.as_ref(),
         In { canister_id },
         timeout,
@@ -241,7 +241,7 @@ pub async fn deposit_cycles(
     }
     let _: () = do_management_call(
         env,
-        canister_id.clone(),
+        canister_id,
         MgmtMethod::DepositCycles.as_ref(),
         In { canister_id },
         timeout,

@@ -3,20 +3,25 @@
 load ../utils/_
 
 setup() {
-    # We want to work from a temporary directory, different for every test.
-    cd "$(mktemp -d -t dfx-e2e-XXXXXXXX)" || exit
+    standard_setup
+
     dfx_new hello
 }
 
 teardown() {
-    dfx_stop
+    dfx_stop_replica_and_bootstrap
+
+    standard_teardown
 }
 
 @test "bootstrap fetches candid file" {
-    dfx_start
+
+    dfx_start_replica_and_bootstrap
+
     dfx canister create --all
     dfx build
     dfx canister install hello
+
     ID=$(dfx canister id hello)
     PORT=$(cat .dfx/webserver-port)
     assert_command curl http://localhost:"$PORT"/_/candid?canisterId="$ID" -o ./web.txt
@@ -24,6 +29,7 @@ teardown() {
     assert_command curl http://localhost:"$PORT"/_/candid?canisterId="$ID"\&format=js -o ./web.txt
     # Relax diff as it's produced by two different compilers.
     assert_command diff --ignore-all-space --ignore-blank-lines .dfx/local/canisters/hello/hello.did.js ./web.txt
+
 }
 
 @test "forbid starting webserver with a forwarded port" {
@@ -34,7 +40,8 @@ teardown() {
 }
 
 @test "bootstrap supports http requests" {
-    dfx_start
+    dfx_start_replica_and_bootstrap
+
     dfx canister create --all
     dfx build
     dfx canister install hello_assets

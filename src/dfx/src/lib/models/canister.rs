@@ -83,6 +83,10 @@ impl Canister {
     pub fn get_build_output(&self) -> Option<&BuildOutput> {
         unsafe { (&*self.output.as_ptr()).as_ref() }
     }
+
+    pub fn generate(&self, pool: &CanisterPool, build_config: &BuildConfig) -> DfxResult {
+        self.builder.generate(pool, &self.info, build_config)
+    }
 }
 
 /// A canister pool is a list of canisters.
@@ -189,7 +193,7 @@ impl CanisterPool {
         // Add all the canisters as nodes.
         for canister in &self.canisters {
             let canister_id = canister.info.get_canister_id()?;
-            id_set.insert(canister_id.clone(), graph.add_node(canister_id.clone()));
+            id_set.insert(canister_id, graph.add_node(canister_id));
         }
 
         // Add all the edges.
@@ -329,7 +333,7 @@ impl CanisterPool {
         let order: Vec<CanisterId> = nodes
             .iter()
             .rev() // Reverse the order, as we have a dependency graph, we want to reverse indices.
-            .map(|idx| graph.node_weight(*idx).unwrap().clone())
+            .map(|idx| *graph.node_weight(*idx).unwrap())
             .collect();
 
         let mut result = Vec::new();
@@ -337,21 +341,15 @@ impl CanisterPool {
             if let Some(canister) = self.get_canister(canister_id) {
                 result.push(
                     self.step_prebuild(&build_config, canister)
-                        .map_err(|e| {
-                            BuildError::PreBuildStepFailed(canister_id.clone(), Box::new(e))
-                        })
+                        .map_err(|e| BuildError::PreBuildStepFailed(*canister_id, Box::new(e)))
                         .and_then(|_| {
-                            self.step_build(&build_config, canister).map_err(|e| {
-                                BuildError::BuildStepFailed(canister_id.clone(), Box::new(e))
-                            })
+                            self.step_build(&build_config, canister)
+                                .map_err(|e| BuildError::BuildStepFailed(*canister_id, Box::new(e)))
                         })
                         .and_then(|o| {
                             self.step_postbuild(&build_config, canister, o)
                                 .map_err(|e| {
-                                    BuildError::PostBuildStepFailed(
-                                        canister_id.clone(),
-                                        Box::new(e),
-                                    )
+                                    BuildError::PostBuildStepFailed(*canister_id, Box::new(e))
                                 })
                                 .map(|_| o)
                         }),
@@ -390,16 +388,18 @@ fn decode_path_to_str(path: &Path) -> DfxResult<&str> {
 /// Create a canister JavaScript DID and Actor Factory.
 fn build_canister_js(canister_id: &CanisterId, canister_info: &CanisterInfo) -> DfxResult {
     let output_did_js_path = canister_info.get_build_idl_path().with_extension("did.js");
-    let output_did_ts_path = canister_info.get_build_idl_path().with_extension("d.ts");
-    let output_canister_js_path = canister_info.get_build_idl_path().with_extension("js");
+    let output_did_ts_path = canister_info
+        .get_build_idl_path()
+        .with_extension("did.d.ts");
 
     let (env, ty) = check_candid_file(&canister_info.get_build_idl_path())?;
-    let content = candid::bindings::javascript::compile(&env, &ty);
+    let content = ensure_trailing_newline(candid::bindings::javascript::compile(&env, &ty));
     std::fs::write(output_did_js_path, content)?;
-    let content = candid::bindings::typescript::compile(&env, &ty);
+    let content = ensure_trailing_newline(candid::bindings::typescript::compile(&env, &ty));
     std::fs::write(output_did_ts_path, content)?;
 
     let mut language_bindings = assets::language_bindings()?;
+    let index_js_path = canister_info.get_index_js_path();
     for f in language_bindings.entries()? {
         let mut file = f?;
         let mut file_contents = String::new();
@@ -407,18 +407,32 @@ fn build_canister_js(canister_id: &CanisterId, canister_info: &CanisterInfo) -> 
 
         let new_file_contents = file_contents
             .replace("{canister_id}", &canister_id.to_text())
-            .replace("{canister_name}", &canister_info.get_name());
+            .replace("{canister_name}", canister_info.get_name())
+            .replace(
+                "{canister_name_uppercase}",
+                &canister_info.get_name().to_uppercase(),
+            );
 
         match decode_path_to_str(&file.path()?)? {
             "canister.js" => {
-                std::fs::write(
-                    decode_path_to_str(&output_canister_js_path)?,
-                    new_file_contents,
-                )?;
+                std::fs::write(decode_path_to_str(&index_js_path)?, new_file_contents)?;
+            }
+            "canisterId.js" => {
+                std::fs::write(decode_path_to_str(&index_js_path)?, new_file_contents)?;
             }
             _ => unreachable!(),
         }
     }
 
     Ok(())
+}
+
+fn ensure_trailing_newline(s: String) -> String {
+    if s.ends_with('\n') {
+        s
+    } else {
+        let mut s = s;
+        s.push('\n');
+        s
+    }
 }
